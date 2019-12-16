@@ -23,6 +23,7 @@ namespace EmplloyeeManagement
 		// For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
 		public void ConfigureServices(IServiceCollection services)
 		{
+			services.AddMvc(option => option.EnableEndpointRouting = false);
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -32,27 +33,9 @@ namespace EmplloyeeManagement
 			{
 				app.UseDeveloperExceptionPage();
 			}
-
-      app.UseDefaultFiles();
-
-			//DefaultFilesOptions defaultFilesOptions = new DefaultFilesOptions();
-			//defaultFilesOptions.DefaultFileNames.Clear();
-			//defaultFilesOptions.DefaultFileNames.Add("foo.html");
-			//app.UseDefaultFiles(defaultFilesOptions);
-			app.UseStaticFiles();
-
-			app.UseRouting();
-
-
-			
-
-			app.UseEndpoints(endpoints =>
-			{
-				endpoints.MapGet("/", async context =>
-							{
-						await context.Response.WriteAsync(_config["MyKey"]);
-					});
-			});
+	    app.UseStaticFiles();
+			app.UseMvcWithDefaultRoute();
+	
 		}
 	}
 }
