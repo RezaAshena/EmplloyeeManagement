@@ -37,7 +37,11 @@ namespace EmplloyeeManagement
 		{
 			if (env.IsDevelopment())
 			{
-				app.UseDeveloperExceptionPage();
+				app.UseStatusCodePagesWithRedirects("/Error/{0}");
+			}
+			else
+			{
+				app.UseStatusCodePages();
 			}
 	    app.UseStaticFiles();
 			//app.UseMvcWithDefaultRoute();
