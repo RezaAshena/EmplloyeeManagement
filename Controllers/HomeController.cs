@@ -61,18 +61,58 @@ namespace EmplloyeeManagement.Controllers
 		}
 
 		[HttpPost]
+		public IActionResult Edit(EmployeeEditViewModel model)
+		{
+			if (ModelState.IsValid)
+			{
+				Employee employee = _employeeRepository.GetEmployee(model.Id);
+				employee.Name = model.Name;
+				employee.Email = model.Email;
+				employee.Department = model.Department;
+
+				if(model.Photo !=null)
+				{
+					//check to see is user select new photo will delete older photo.
+					if(model.ExistingPhotoPath !=null)
+					{
+						string filePath=Path.Combine(hostingEnvironment.WebRootPath, "images", model.ExistingPhotoPath);
+						System.IO.File.Delete(filePath);
+					}
+					employee.PhotoPath = ProcessUploadeFile(model);
+				}
+
+				_employeeRepository.Update(employee);
+				return RedirectToAction("index");
+			}
+			return View();
+
+		}
+
+		private string ProcessUploadeFile(EmployeeCreateViewModel model)
+		{
+			string uniqueFileName = null;
+			if (model.Photo != null)
+			{
+				string uploadFolder = Path.Combine(hostingEnvironment.WebRootPath, "images");
+				uniqueFileName = Guid.NewGuid().ToString() + "_" + model.Photo.FileName;
+				string filePath = Path.Combine(uploadFolder, uniqueFileName);
+				using(var filestream= new FileStream(filePath, FileMode.Create))
+				{
+						model.Photo.CopyTo(filestream);
+				}
+				
+			}
+
+			return uniqueFileName;
+		}
+
+		[HttpPost]
 		public IActionResult Create(EmployeeCreateViewModel model)
 		{
 			if(ModelState.IsValid)
 			{
-				string uniqueFileName = null;
-				if(model.Photo !=null)
-				{
-				  string uploadFolder =	Path.Combine(hostingEnvironment.WebRootPath, "images");
-					uniqueFileName = Guid.NewGuid().ToString() + "_" + model.Photo.FileName;
-				  string filePath =	Path.Combine(uploadFolder, uniqueFileName);
-					model.Photo.CopyTo(new FileStream(filePath, FileMode.Create));
-				}
+				string uniqueFileName = ProcessUploadeFile(model);
+				
 
 				Employee newEmployee = new Employee
 				{
