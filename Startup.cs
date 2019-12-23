@@ -6,6 +6,7 @@ using EmplloyeeManagement.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,8 +26,12 @@ namespace EmplloyeeManagement
 		// For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
 		public void ConfigureServices(IServiceCollection services)
 		{
+
 			services.AddDbContextPool<AppDbContext>(
 				options => options.UseMySql(_config.GetConnectionString("EmployeeDBConnection")));
+
+			services.AddIdentity<IdentityUser, IdentityRole>()
+							.AddEntityFrameworkStores<AppDbContext>();
 
 			services.AddMvc(option => option.EnableEndpointRouting = false);
 			services.AddScoped<IEmployeeRepository, MySqlEmployeeRepository>();
@@ -44,6 +49,7 @@ namespace EmplloyeeManagement
 				app.UseStatusCodePages();
 			}
 	    app.UseStaticFiles();
+			app.UseAuthentication(); //should be before app.UseMvc
 			//app.UseMvcWithDefaultRoute();
 			app.UseMvc(routes =>
 			{
