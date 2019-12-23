@@ -29,8 +29,14 @@ namespace EmplloyeeManagement
 			services.AddDbContextPool<AppDbContext>(
 				options => options.UseMySql(_config.GetConnectionString("EmployeeDBConnection")));
 
-			services.AddIdentity<IdentityUser, IdentityRole>()
-							.AddEntityFrameworkStores<AppDbContext>();
+			services.AddIdentity<IdentityUser, IdentityRole>(options =>
+			{
+				options.Password.RequiredLength = 5;
+				options.Password.RequiredUniqueChars = 0;
+				options.Password.RequireNonAlphanumeric = false;
+				options.Password.RequireDigit = false;
+
+			}).AddEntityFrameworkStores<AppDbContext>();
 
 			services.AddMvc(option => option.EnableEndpointRouting = false);
 			services.AddScoped<IEmployeeRepository, MySqlEmployeeRepository>();
@@ -43,14 +49,14 @@ namespace EmplloyeeManagement
 			{
 				app.UseDeveloperExceptionPage();
 			}
-	    app.UseStaticFiles();
+			app.UseStaticFiles();
 			//app.UseMvcWithDefaultRoute();
 			app.UseAuthentication();//Must be before UseMvc
 			app.UseMvc(routes =>
 			{
-				routes.MapRoute("default","{controller=Home}/{action=Index}/{id?}");
+				routes.MapRoute("default", "{controller=Home}/{action=Index}/{id?}");
 			});
-	
+
 		}
 	}
 }
