@@ -19,6 +19,14 @@ namespace EmplloyeeManagement.Controllers
 			this.usermanager = usermanager;
 			this.signInManager = signInManager;
 		}
+
+		[HttpPost]
+		public async Task<IActionResult> Logout()
+		{
+			await signInManager.SignOutAsync();
+			return RedirectToAction("index", "home");
+		}
+
 		[HttpGet]
 		public IActionResult Register()
 		{
