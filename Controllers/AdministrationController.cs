@@ -34,7 +34,7 @@ namespace EmplloyeeManagement.Controllers
 
                 if (result.Succeeded)
                 {
-                    return RedirectToAction("index", "home");
+                    return RedirectToAction("ListRoles", "Administration");
                 }
 
                 foreach (IdentityError error in result.Errors)
@@ -44,6 +44,13 @@ namespace EmplloyeeManagement.Controllers
             }
 
             return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult ListRoles()
+        {
+            var roles = roleManager.Roles;
+            return View(roles);
         }
     }
 }
