@@ -29,7 +29,7 @@ namespace EmplloyeeManagement
 			services.AddDbContextPool<AppDbContext>(
 				options => options.UseMySql(_config.GetConnectionString("EmployeeDBConnection")));
 
-			services.AddIdentity<IdentityUser, IdentityRole>(options =>
+			services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 			{
 				options.Password.RequiredLength = 5;
 				options.Password.RequiredUniqueChars = 0;
