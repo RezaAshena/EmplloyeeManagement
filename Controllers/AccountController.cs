@@ -8,79 +8,94 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EmplloyeeManagement.Controllers
 {
-	public class AccountController : Controller
-	{
-		private readonly UserManager<IdentityUser> usermanager;
-		private readonly SignInManager<IdentityUser> signInManager;
+    public class AccountController : Controller
+    {
+        private readonly UserManager<IdentityUser> usermanager;
+        private readonly SignInManager<IdentityUser> signInManager;
 
-		public AccountController(UserManager<IdentityUser> usermanager,
-																SignInManager<IdentityUser> signInManager)
-		{
-			this.usermanager = usermanager;
-			this.signInManager = signInManager;
-		}
+        public AccountController(UserManager<IdentityUser> usermanager,
+                                                                SignInManager<IdentityUser> signInManager)
+        {
+            this.usermanager = usermanager;
+            this.signInManager = signInManager;
+        }
 
-		[HttpPost]
-		public async Task<IActionResult> Logout()
-		{
-			await signInManager.SignOutAsync();
-			return RedirectToAction("index", "home");
-		}
+        [HttpPost]
+        public async Task<IActionResult> Logout()
+        {
+            await signInManager.SignOutAsync();
+            return RedirectToAction("index", "home");
+        }
 
-		[HttpGet]
-		public IActionResult Register()
-		{
-			return View();
-		}
+        [HttpGet]
+        public IActionResult Register()
+        {
+            return View();
+        }
 
-		[HttpPost]
-		public async Task<IActionResult> Register(RegisterViewModel model)
-		{
-			if (ModelState.IsValid)
-			{
-				var user = new IdentityUser { UserName = model.Email, Email = model.Email };
-				var result = await usermanager.CreateAsync(user, model.Password);
-				if (result.Succeeded)
-				{
-					await signInManager.SignInAsync(user, isPersistent: false);
-					return RedirectToAction("index", "home");
+        [HttpPost]
+        [HttpGet]
+        public async Task<IActionResult> IsEmailInUse(string email)
+        {
+            var user = await usermanager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return Json(true);
+            }
+            else
+            {
+                return Json($"Email {email} is already in use");
+            }
+        }
 
-				}
-				foreach (var error in result.Errors)
-				{
-					ModelState.AddModelError(string.Empty, error.Description);
-				}
-			}
-			return View(model);
-		}
+        [HttpPost]
+        public async Task<IActionResult> Register(RegisterViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = new IdentityUser { UserName = model.Email, Email = model.Email };
+                var result = await usermanager.CreateAsync(user, model.Password);
+                if (result.Succeeded)
+                {
+                    await signInManager.SignInAsync(user, isPersistent: false);
+                    return RedirectToAction("index", "home");
 
-		[HttpGet]
-		public IActionResult Login()
-		{
-			return View();
-		}
+                }
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+            return View(model);
+        }
 
-		[HttpPost]
-		public async Task<IActionResult> Login(LoginViewModel model,string returnUrl)
-		{
-			if (ModelState.IsValid)
-			{
-				var result = await signInManager.PasswordSignInAsync(model.Email,model.Password,model.RememberMe,false);
-				if (result.Succeeded)
-				{
-					if(!string.IsNullOrEmpty(returnUrl))
-					{
-						return LocalRedirect(returnUrl);
-					}
-					else
-					{
-						return RedirectToAction("index", "home");
-					}
-				}
-				
-					ModelState.AddModelError(string.Empty, "Invalid Login Attempt");
-			}
-			return View(model);
-		}
-	}
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Login(LoginViewModel model, string returnUrl)
+        {
+            if (ModelState.IsValid)
+            {
+                var result = await signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
+                if (result.Succeeded)
+                {
+                    if (!string.IsNullOrEmpty(returnUrl))
+                    {
+                        return LocalRedirect(returnUrl);
+                    }
+                    else
+                    {
+                        return RedirectToAction("index", "home");
+                    }
+                }
+
+                ModelState.AddModelError(string.Empty, "Invalid Login Attempt");
+            }
+            return View(model);
+        }
+    }
 }
