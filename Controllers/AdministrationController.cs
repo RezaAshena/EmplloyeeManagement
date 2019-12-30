@@ -1,4 +1,5 @@
 ﻿
+using EmplloyeeManagement.Models;
 using EmplloyeeManagement.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -12,10 +13,13 @@ namespace EmplloyeeManagement.Controllers
     public class AdministrationController : Controller
     {
         private readonly RoleManager<IdentityRole> roleManager;
+        private readonly UserManager<ApplicationUser> userManager;
 
-        public AdministrationController(RoleManager<IdentityRole> roleManager)
+        public AdministrationController(RoleManager<IdentityRole> roleManager,
+                                        UserManager<ApplicationUser> userManager)
         {
             this.roleManager = roleManager;
+            this.userManager = userManager;
         }
 
         [HttpGet]
@@ -52,5 +56,62 @@ namespace EmplloyeeManagement.Controllers
             var roles = roleManager.Roles;
             return View(roles);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> EditRole(string id)
+        {
+            var role = await roleManager.FindByIdAsync(id);
+
+            if (role == null)
+            {
+                ViewBag.ErrorMessage = $"Role with Id= {id} can not be found";
+                return View("EmployeeNotFound");
+            }
+            var model = new EditRoleVieModel
+            {
+                Id = role.Id,
+                RoleName = role.Name
+            };
+
+            foreach (var user in userManager.Users)
+            {
+                if (await userManager.IsInRoleAsync(user, role.Name))
+                {
+                    model.Users.Add(user.UserName);
+                }
+            }
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditRole(EditRoleVieModel model)
+        {
+            var role = await roleManager.FindByIdAsync(model.Id);
+
+            if (role == null)
+            {
+                ViewBag.ErrorMessage = $"Role with Id= {model.Id} can not be found";
+                return View("EmployeeNotFound");
+            }
+            else
+            {
+                role.Name = model.RoleName;
+                var result = await roleManager.UpdateAsync(role);
+
+                if(result.Succeeded)
+                {
+                    return RedirectToAction("ListRoles");
+                }
+
+                foreach(var error in result.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
+                return View(model);
+            }
+
+        }
     }
+
 }
+
