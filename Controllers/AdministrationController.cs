@@ -73,13 +73,13 @@ namespace EmplloyeeManagement.Controllers
                 RoleName = role.Name
             };
 
-            foreach (var user in userManager.Users)
-            {
-                if (await userManager.IsInRoleAsync(user, role.Name))
-                {
-                    model.Users.Add(user.UserName);
-                }
-            }
+            //foreach (var user in userManager.Users)
+            //{
+            //    if (await userManager.IsInRoleAsync(user, role.Name))
+            //    {
+            //        model.Users.Add(user.UserName);
+            //    }
+            //}
             return View(model);
         }
 
@@ -135,14 +135,14 @@ namespace EmplloyeeManagement.Controllers
                     UserName = user.UserName
                 };
 
-                if (await userManager.IsInRoleAsync(user, role.Name))
-                {
-                    userRoleViewModel.IsSelected = true;
-                }
-                else
-                {
-                    userRoleViewModel.IsSelected = false;
-                }
+                //if (await userManager.IsInRoleAsync(user, role.Name))
+                //{
+                //    userRoleViewModel.IsSelected = true;
+                //}
+                //else
+                //{
+                //    userRoleViewModel.IsSelected = false;
+                //}
 
                 model.Add(userRoleViewModel);
             }
