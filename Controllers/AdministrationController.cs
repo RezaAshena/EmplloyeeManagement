@@ -23,6 +23,13 @@ namespace EmplloyeeManagement.Controllers
         }
 
         [HttpGet]
+        public IActionResult ListUsers()
+        {
+            var users = userManager.Users;
+            return View(users);
+        }
+
+        [HttpGet]
         public IActionResult CreateRole()
         {
             return View();
