@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using EmplloyeeManagement.Models;
 using EmplloyeeManagement.ViewModels;
@@ -12,13 +13,13 @@ namespace EmplloyeeManagement.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly UserManager<ApplicationUser> usermanager;
+        private readonly UserManager<ApplicationUser> userManager;
         private readonly SignInManager<ApplicationUser> signInManager;
 
         public AccountController(UserManager<ApplicationUser> usermanager,
                                                                 SignInManager<ApplicationUser> signInManager)
         {
-            this.usermanager = usermanager;
+            this.userManager = usermanager;
             this.signInManager = signInManager;
         }
 
@@ -39,7 +40,7 @@ namespace EmplloyeeManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> IsEmailInUse(string email)
         {
-            var user = await usermanager.FindByEmailAsync(email);
+            var user = await userManager.FindByEmailAsync(email);
             if (user == null)
             {
                 return Json(true);
@@ -56,7 +57,7 @@ namespace EmplloyeeManagement.Controllers
             if (ModelState.IsValid)
             {
                 var user = new ApplicationUser { UserName = model.Email, Email = model.Email, City = model.City };
-                var result = await usermanager.CreateAsync(user, model.Password);
+                var result = await userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
                     if (signInManager.IsSignedIn(User) && User.IsInRole("Admin"))
@@ -122,6 +123,69 @@ namespace EmplloyeeManagement.Controllers
                 signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
 
             return new ChallengeResult(provider, properties);
+        }
+
+        [AllowAnonymous]
+        public async Task<IActionResult>
+            ExternalLoginCallback(string returnUrl = null, string remoteError = null)
+        {
+            returnUrl = returnUrl ?? Url.Content("~/");
+
+            LoginViewModel loginViewModel = new LoginViewModel
+            {
+                ReturnUrl = returnUrl,
+                ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync()).ToList()
+            };
+
+            if (remoteError != null)
+            {
+                ModelState.AddModelError(string.Empty, $"Error from external provider: {remoteError}");
+
+                return View("Login", loginViewModel);
+            }
+
+            var info = await signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+            {
+                ModelState.AddModelError(string.Empty, "Error loading external login information.");
+
+                return View("Login", loginViewModel);
+            }
+
+
+            var signInResult = await signInManager.ExternalLoginSignInAsync(
+                                        info.LoginProvider, info.ProviderKey,
+                                        isPersistent: false, bypassTwoFactor: true);
+
+            if (signInResult.Succeeded)
+            {
+                return LocalRedirect(returnUrl);
+            }
+            else
+            {
+                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+                if (email != null)
+                {
+                    var user = await userManager.FindByEmailAsync(email);
+                    if (user == null)
+                    {
+                        user = new ApplicationUser
+                        {
+                            UserName = info.Principal.FindFirstValue(ClaimTypes.Email),
+                            Email = info.Principal.FindFirstValue(ClaimTypes.Email)
+                        };
+                        await userManager.CreateAsync(user);
+                    }
+
+                    await userManager.AddLoginAsync(user, info);
+                    await signInManager.SignInAsync(user, isPersistent: false);
+
+                    return LocalRedirect(returnUrl);
+
+                }
+
+            }
+            return View("Error");
         }
     }
 }
