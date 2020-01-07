@@ -14,49 +14,56 @@ using Microsoft.Extensions.Hosting;
 
 namespace EmplloyeeManagement
 {
-	public class Startup
-	{
-		private IConfiguration _config;
+    public class Startup
+    {
+        private IConfiguration _config;
 
-		public Startup(IConfiguration config)
-		{
-			_config = config;
-		}
-		// This method gets called by the runtime. Use this method to add services to the container.
-		// For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
-		public void ConfigureServices(IServiceCollection services)
-		{
-			services.AddDbContextPool<AppDbContext>(
-				options => options.UseMySql(_config.GetConnectionString("EmployeeDBConnection")));
+        public Startup(IConfiguration config)
+        {
+            _config = config;
+        }
+        // This method gets called by the runtime. Use this method to add services to the container.
+        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddDbContextPool<AppDbContext>(
+                options => options.UseMySql(_config.GetConnectionString("EmployeeDBConnection")));
 
-			services.AddIdentity<ApplicationUser, IdentityRole>(options =>
-			{
-				options.Password.RequiredLength = 5;
-				options.Password.RequiredUniqueChars = 0;
-				options.Password.RequireNonAlphanumeric = false;
-				options.Password.RequireDigit = false;
+            services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                options.Password.RequiredLength = 5;
+                options.Password.RequiredUniqueChars = 0;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireDigit = false;
 
-			}).AddEntityFrameworkStores<AppDbContext>();
+            }).AddEntityFrameworkStores<AppDbContext>();
 
-			services.AddMvc(option => option.EnableEndpointRouting = false);
-			services.AddScoped<IEmployeeRepository, MySqlEmployeeRepository>();
-		}
+            services.AddMvc(option => option.EnableEndpointRouting = false);
+            services.AddScoped<IEmployeeRepository, MySqlEmployeeRepository>();
 
-		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-		{
-			if (env.IsDevelopment())
-			{
-				app.UseDeveloperExceptionPage();
-			}
-			app.UseStaticFiles();
-			//app.UseMvcWithDefaultRoute();
-			app.UseAuthentication();//Must be before UseMvc
-			app.UseMvc(routes =>
-			{
-				routes.MapRoute("default", "{controller=Home}/{action=Index}/{id?}");
-			});
+            services.AddAuthentication()
+                .AddGoogle(options =>
+                {
+                    options.ClientId = "407026785794-m5ee6g7ufemva3gb4l0v018brde9kl28.apps.googleusercontent.com";
+                    options.ClientSecret = "qt5Y-GLSTecvOpwn7cvX_gnC";
+                });
+        }
 
-		}
-	}
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            app.UseStaticFiles();
+            //app.UseMvcWithDefaultRoute();
+            app.UseAuthentication();//Must be before UseMvc
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute("default", "{controller=Home}/{action=Index}/{id?}");
+            });
+
+        }
+    }
 }
