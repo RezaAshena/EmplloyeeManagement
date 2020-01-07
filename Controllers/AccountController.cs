@@ -92,8 +92,19 @@ namespace EmplloyeeManagement.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model, string returnUrl)
         {
+            model.ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+
             if (ModelState.IsValid)
             {
+                var user = await userManager.FindByEmailAsync(model.Email);
+
+                if (user != null && !user.EmailConfirmed &&
+                                   (await userManager.CheckPasswordAsync(user, model.Password)))
+                {
+                    ModelState.AddModelError(string.Empty, "Email not confirmed yet");
+                    return View(model);
+                }
+
                 var result = await signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
                 if (result.Succeeded)
                 {
@@ -152,6 +163,20 @@ namespace EmplloyeeManagement.Controllers
                 return View("Login", loginViewModel);
             }
 
+            var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+
+            ApplicationUser user = null;
+
+            if (email != null)
+            {
+                user = await userManager.FindByEmailAsync(email);
+
+                if (user != null && !user.EmailConfirmed)
+                {
+                    ModelState.AddModelError(string.Empty, "Email not confirmed yet");
+                    return View("Login", loginViewModel);
+                }
+            }
 
             var signInResult = await signInManager.ExternalLoginSignInAsync(
                                         info.LoginProvider, info.ProviderKey,
@@ -163,10 +188,9 @@ namespace EmplloyeeManagement.Controllers
             }
             else
             {
-                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
                 if (email != null)
                 {
-                    var user = await userManager.FindByEmailAsync(email);
+
                     if (user == null)
                     {
                         user = new ApplicationUser

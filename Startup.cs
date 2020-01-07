@@ -36,6 +36,8 @@ namespace EmplloyeeManagement
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireDigit = false;
 
+                options.SignIn.RequireConfirmedEmail = true;
+
             }).AddEntityFrameworkStores<AppDbContext>();
 
             services.AddMvc(option => option.EnableEndpointRouting = false);
