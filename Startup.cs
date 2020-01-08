@@ -38,7 +38,9 @@ namespace EmplloyeeManagement
 
                 options.SignIn.RequireConfirmedEmail = true;
 
-            }).AddEntityFrameworkStores<AppDbContext>();
+            })
+             .AddEntityFrameworkStores<AppDbContext>()
+             .AddDefaultTokenProviders();
 
             services.AddMvc(option => option.EnableEndpointRouting = false);
             services.AddScoped<IEmployeeRepository, MySqlEmployeeRepository>();
@@ -49,7 +51,7 @@ namespace EmplloyeeManagement
                     options.ClientId = "407026785794-m5ee6g7ufemva3gb4l0v018brde9kl28.apps.googleusercontent.com";
                     options.ClientSecret = "qt5Y-GLSTecvOpwn7cvX_gnC";
                 })
-                .AddFacebook(option=>
+                .AddFacebook(option =>
                 {
                     option.AppId = "472596313640254";
                     option.AppSecret = "10c20abe4ef0e6a2c372ec4c9d254e96";
